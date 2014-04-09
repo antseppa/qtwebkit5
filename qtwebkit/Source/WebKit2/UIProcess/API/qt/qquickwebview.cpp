@@ -254,6 +254,8 @@ void QQuickWebViewPrivate::FlickableAxisLocker::update(const QTouchEvent* event)
         return;
     }
 
+    m_movement = touchPoint.pos() - touchPoint.lastPos();
+
     if (m_sampleCount > kAxisLockSampleCount
             || m_allowedDirection == QQuickFlickable::HorizontalFlick
             || m_allowedDirection == QQuickFlickable::VerticalFlick)
@@ -287,6 +289,17 @@ QPointF QQuickWebViewPrivate::FlickableAxisLocker::adjust(const QPointF& positio
         return QPointF(m_lockReferencePosition.x(), position.y());
 
     return position;
+}
+
+QPointF QQuickWebViewPrivate::FlickableAxisLocker::adjustedMovement()
+{
+    if (m_allowedDirection == QQuickFlickable::HorizontalFlick)
+        return QPointF(m_movement.x(), 0);
+
+    if (m_allowedDirection == QQuickFlickable::VerticalFlick)
+        return QPointF(0, m_movement.y());
+
+    return m_movement;
 }
 
 QQuickWebViewPrivate::QQuickWebViewPrivate(QQuickWebView* viewport)
@@ -2342,6 +2355,7 @@ void QQuickWebView::setContentPos(const QPointF& pos)
 void QQuickWebView::handleFlickableMousePress(const QPointF& position, qint64 eventTimestampMillis)
 {
     Q_D(QQuickWebView);
+    setKeepMouseGrab(false);
     d->axisLocker.setReferencePosition(position);
     QMouseEvent mouseEvent(QEvent::MouseButtonPress, position, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
     mouseEvent.setTimestamp(eventTimestampMillis);
@@ -2351,6 +2365,9 @@ void QQuickWebView::handleFlickableMousePress(const QPointF& position, qint64 ev
 void QQuickWebView::handleFlickableMouseMove(const QPointF& position, qint64 eventTimestampMillis)
 {
     Q_D(QQuickWebView);
+
+    handleMouseGrab(position);
+
     QMouseEvent mouseEvent(QEvent::MouseMove, d->axisLocker.adjust(position), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
     mouseEvent.setTimestamp(eventTimestampMillis);
     QQuickFlickable::mouseMoveEvent(&mouseEvent);
@@ -2363,6 +2380,28 @@ void QQuickWebView::handleFlickableMouseRelease(const QPointF& position, qint64 
     d->axisLocker.reset();
     mouseEvent.setTimestamp(eventTimestampMillis);
     QQuickFlickable::mouseReleaseEvent(&mouseEvent);
+}
+
+void QQuickWebView::handleMouseGrab(const QPointF& position)
+{
+    Q_D(QQuickWebView);
+
+    if (window()->mouseGrabberItem() != this) {
+        QPointF adjustedMovement = d->axisLocker.adjustedMovement();
+        qDebug("AJD MOVEMENT(100): %d %d", (int)adjustedMovement.x(), (int)adjustedMovement.y());
+        qDebug("AT X BEGINNING: %d, AT X END %d", isAtXBeginning(), isAtXEnd());
+
+        const bool goingOut = (isAtXBeginning() && adjustedMovement.x() < 0)
+                               || (isAtXEnd() && adjustedMovement.x() > 0)
+                               || (isAtYBeginning() && adjustedMovement.y() < 0)
+                               || (isAtYEnd() && adjustedMovement.y() > 0);
+
+        if (!goingOut) {
+            qDebug("***** NOT GOING OUT, GRAB MOUSE: moving horizontally: %d", isMovingHorizontally());
+            grabMouse();
+            setKeepMouseGrab(true);
+        }
+    }
 }
 
 /*!

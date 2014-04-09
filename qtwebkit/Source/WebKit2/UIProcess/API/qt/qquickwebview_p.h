@@ -204,6 +204,7 @@ private:
     void handleFlickableMousePress(const QPointF& position, qint64 eventTimestampMillis);
     void handleFlickableMouseMove(const QPointF& position, qint64 eventTimestampMillis);
     void handleFlickableMouseRelease(const QPointF& position, qint64 eventTimestampMillis);
+    void handleMouseGrab(const QPointF& position);
 
     QPointF contentPos() const;
     void setContentPos(const QPointF&);

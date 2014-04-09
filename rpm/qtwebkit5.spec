@@ -140,9 +140,10 @@ the World Wide Web into your Qt application.
 
 This package contains the WebKit QML Experimental plugin for QtQml.
 
+#%setup -q -n %{name}-%{version}/qtwebkit
 
 %prep
-%setup -q -n %{name}-%{version}/qtwebkit
+%setup -n %{name}/qtwebkit
 
 # remove .../qt/tests directory which introduces nothing but trouble
 rm -rf Source/WebKit/qt/tests/

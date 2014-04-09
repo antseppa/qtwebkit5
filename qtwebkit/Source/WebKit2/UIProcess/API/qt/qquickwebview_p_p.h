@@ -157,6 +157,7 @@ protected:
         ulong m_time;
         QPointF m_initialPosition;
         QPointF m_lockReferencePosition;
+        QPointF m_movement;
         int m_sampleCount;
 
         QVector2D touchVelocity(const QTouchEvent* event);
@@ -168,6 +169,7 @@ protected:
         void setReferencePosition(const QPointF&);
         void reset();
         QPointF adjust(const QPointF&);
+        QPointF adjustedMovement();
     };
 
     // WKPageLoadClient callbacks.
