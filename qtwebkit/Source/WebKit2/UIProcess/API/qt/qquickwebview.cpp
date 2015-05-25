@@ -1382,10 +1382,13 @@ void QQuickWebViewExperimental::setEnableResizeContent(bool enableResizeContent)
     if (d->m_enableResizeContent == enableResizeContent)
         return;
 
+    qDebug("ANTTI: SET m_enableResizeContent %d", d->m_enableResizeContent);
+
     d->m_enableResizeContent = enableResizeContent;
     emit enableResizeContentChanged();
 
     if (d->m_enableResizeContent) {
+        qDebug("TRIG update viewport size");
         d->updateViewportSize();
     }
 }
@@ -2314,6 +2317,7 @@ bool QQuickWebView::childMouseEventFilter(QQuickItem* item, QEvent* event)
 void QQuickWebView::geometryChanged(const QRectF& newGeometry, const QRectF& oldGeometry)
 {
     Q_D(QQuickWebView);
+    qDebug("GEOM: m_enableResizeContent: %d", d->m_enableResizeContent);
     QQuickFlickable::geometryChanged(newGeometry, oldGeometry);
     if (newGeometry.size() != oldGeometry.size() && d->m_enableResizeContent)
         d->updateViewportSize();
